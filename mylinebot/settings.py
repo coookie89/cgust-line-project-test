@@ -121,8 +121,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-LINE_CHANNEL_ACCESS_TOKEN = 'Messaging API的Channel access token'
+LINE_CHANNEL_ACCESS_TOKEN = 'lO2c3MJE9FHrMoxGlMUx/vKh5YrdhLT3RMQpRywglw+C7s0ugns92fQRQuEVURjtLo7UVVdBLxVy99xQk4W0GTwSAFXaqwjYXPPcY0fol6E9Wj6iplK0Mk6d9SsS4PWba58DMgAxrFNMBkMkAl27uAdB04t89/1O/w1cDnyilFU='
 
-LINE_CHANNEL_SECRET = 'Basic settings的Channel Secret'
+LINE_CHANNEL_SECRET = '10f8e3963fb81c92797b7f2cebc22312'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
