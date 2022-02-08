@@ -102,7 +102,7 @@ def if_mkdir(dir_path):  # 如果檔案不存在,就建立一個
 if __name__ == "__main__":
 
     # rich menu
-    headers = {"Authorization": line_channel_access_token,
+    headers = {"Authorization": "Bearer "+line_channel_access_token,
                "Content-Type": "application/json"}
 
     body = {
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     req = requests.request('POST', 'https://api.line.me/v2/bot/user/all/richmenu/'+req['richMenuId'],
                            headers=headers)
     """
-    
+
     # rich menu
 
     port = int(os.environ.get('PORT', 5000))  # 偵測heroku給的port是多少
