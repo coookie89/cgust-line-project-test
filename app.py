@@ -84,7 +84,7 @@ def handle_message(event):
         elif user_text[0] == '姓名':
             user_name=user_text[1] #把個管師存進資料庫
             
-            message = TextSendMessage(text="哈囉！"+user_name+"("+user_id+")"+"。\\n"+"你可以開始使用其他功能了。")
+            message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。")
             line_bot_api.reply_message(event.reply_token, message)
 
 
