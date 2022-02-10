@@ -1,12 +1,14 @@
-# 載入LineBot所需要的模組
 import os
 import json
+import datetime
 
 import requests  # rich menu
 
+import mysql.connector
+from mysql.connector import Error
 
+# 載入LineBot所需要的模組
 from flask import Flask, request, abort
-
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -28,8 +30,6 @@ handler = WebhookHandler('10f8e3963fb81c92797b7f2cebc22312')
 #line_bot_api.push_message('U54cdd2802a60c0261bf72b4fa3fc96e6', TextSendMessage(text='你可以開始了'))
 
 # 監聽所有來自 /callback 的 Post Request (Heroku跟LINE Bot做串接)
-
-
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -83,6 +83,11 @@ def handle_message(event):
 
         elif user_text[0] == '姓名':
             user_name=user_text[1] #把個管師存進資料庫
+
+            table_name = "個案管理師_基本資料"
+            col_name = ["個管師_姓名", "個管師_line-user-id", "記錄時間"]
+            val_list = [user_name, user_id, get_current_time()]
+            db_insert(CURSOR, table_name, col_name, val_list)
             
             message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。")
             line_bot_api.reply_message(event.reply_token, message)
@@ -104,6 +109,57 @@ def write_json(line_user_id, info_type, data_dict):
 def if_mkdir(dir_path):  # 如果檔案不存在,就建立一個
     if os.path.isdir(dir_path) != 1:
         os.makedirs(dir_path)
+
+
+# 存入資料庫
+def db_insert(cursor, table_name, col_list, val_list):
+    sql = "INSERT INTO `"+table_name+"` "
+    sql += "("
+    for col_index in range(0, len(col_list)):
+        if col_index != len(col_list)-1:
+            sql += "`"+col_list[col_index]+"`, "
+        else:
+            sql += "`"+col_list[col_index]+"`"
+    sql += ") "
+    sql += "VALUES "
+    sql += "("
+    for val_index in range(0, len(val_list)):
+        if val_list[val_index] == "now()":
+            sql += val_list[val_index]
+        else:
+            if type(val_list[val_index]) == str:
+                sql += "'"+val_list[val_index]+"'"
+            elif type(val_list[val_index]) == int:
+                sql += str(val_list[val_index])
+
+        if val_index != len(val_list)-1:
+            sql += ", "
+
+    sql += ") "
+
+    cursor.execute(sql)
+    connection.commit()
+
+
+def get_current_time():
+    current_time=str(datetime.datetime.now()).split('.')[0]
+    return current_time
+
+
+def connect_db():
+    global CURSOR
+    try:
+        connection = mysql.connector.connect(
+                host="3.86.83.200",
+                port=3306,
+                database="cgust-line-project",
+                user="cgust",
+                password="12345678",
+            )
+        if connection.is_connected():
+                CURSOR = connection.cursor()
+    except Error as e:
+        print("資料庫連接失敗:", e)
 
 
 # 主程式
