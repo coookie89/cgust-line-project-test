@@ -165,5 +165,6 @@ def connect_db():
 # 主程式
 if __name__ == "__main__":
 
+    connect_db()
     port = int(os.environ.get('PORT', 5000))  # 偵測heroku給的port是多少
     app.run(host='0.0.0.0', port=port)
