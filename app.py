@@ -52,6 +52,9 @@ def callback():
 ##### 基本上程式編輯都在這個function #####
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    global CURSOR
+    global connection
+
     user_text = event.message.text  # 使用者傳的話
     user_text = user_text.split("@")
 
@@ -112,7 +115,7 @@ def if_mkdir(dir_path):  # 如果檔案不存在,就建立一個
 
 
 # 存入資料庫
-def db_insert(cursor, table_name, col_list, val_list):
+def db_insert(cursor, connection,  table_name, col_list, val_list):
     sql = "INSERT INTO `"+table_name+"` "
     sql += "("
     for col_index in range(0, len(col_list)):
@@ -148,6 +151,7 @@ def get_current_time():
 
 def connect_db():
     global CURSOR
+    global connection
     try:
         connection = mysql.connector.connect(
                 host="3.86.83.200",
