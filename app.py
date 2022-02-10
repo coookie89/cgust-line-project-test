@@ -87,12 +87,28 @@ def handle_message(event):
         elif user_text[0] == '姓名':
             user_name=user_text[1] #把個管師存進資料庫
 
-            table_name = "個案管理師_基本資料"
-            col_name = ["個管師_姓名", "個管師_line-user-id", "記錄時間"]
-            val_list = [user_name, user_id, get_current_time()]
-            db_insert(CURSOR, table_name, col_name, val_list)
-            
-            message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。")
+            try:
+                connection = mysql.connector.connect(
+                    host="3.86.83.200",
+                    port=3306,
+                    database="cgust-line-project",
+                    user="cgust",
+                    password="12345678",
+                )
+
+                if connection.is_connected():
+                    cursor = connection.cursor()
+
+                    table_name = "個案管理師_基本資料"
+                    col_name = ["個管師_姓名", "個管師_line-user-id", "記錄時間"]
+                    val_list = ["楊千嬅", "123", get_current_time()]
+
+                    db_insert(cursor, table_name, col_name, val_list)
+                    message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。")
+
+            except Error as e:
+                message = TextSendMessage(text="資料上傳失敗。\n"+"錯誤代碼: "+e)
+
             line_bot_api.reply_message(event.reply_token, message)
 
 
@@ -115,7 +131,7 @@ def if_mkdir(dir_path):  # 如果檔案不存在,就建立一個
 
 
 # 存入資料庫
-def db_insert(cursor, connection,  table_name, col_list, val_list):
+def db_insert(cursor, table_name, col_list, val_list):
     sql = "INSERT INTO `"+table_name+"` "
     sql += "("
     for col_index in range(0, len(col_list)):
@@ -149,26 +165,7 @@ def get_current_time():
     return current_time
 
 
-def connect_db():
-    global CURSOR
-    global connection
-    try:
-        connection = mysql.connector.connect(
-                host="3.86.83.200",
-                port=3306,
-                database="cgust-line-project",
-                user="cgust",
-                password="12345678",
-            )
-        if connection.is_connected():
-                CURSOR = connection.cursor()
-    except Error as e:
-        print("資料庫連接失敗:", e)
-
-
 # 主程式
 if __name__ == "__main__":
-
-    connect_db()
     port = int(os.environ.get('PORT', 5000))  # 偵測heroku給的port是多少
     app.run(host='0.0.0.0', port=port)
