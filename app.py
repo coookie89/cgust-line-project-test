@@ -101,13 +101,14 @@ def handle_message(event):
 
                     table_name = "個案管理師_基本資料"
                     col_name = ["個管師_姓名", "個管師_line-user-id", "記錄時間"]
-                    val_list = ["楊千嬅", "123", get_current_time()]
+                    val_list = [user_name, user_id, get_current_time()]
 
                     db_insert(cursor, table_name, col_name, val_list)
                     message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。")
 
-            except Error as e:
-                message = TextSendMessage(text="資料上傳失敗。\n"+"錯誤代碼: "+e)
+            #except Error as e:
+            except:
+                message = TextSendMessage(text="資料上傳失敗。")
 
             line_bot_api.reply_message(event.reply_token, message)
 
