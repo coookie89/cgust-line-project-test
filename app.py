@@ -91,8 +91,8 @@ def handle_message(event):
 
             message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。"+"\n"+script_response)
 
-        except Error as e:
-            message = TextSendMessage(text="資料上傳失敗。"+"\n"+e)
+        except:
+            message = TextSendMessage(text="資料上傳失敗。")
 
         line_bot_api.reply_message(event.reply_token, message)
 
