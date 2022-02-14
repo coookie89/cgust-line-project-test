@@ -19,13 +19,16 @@ from linebot.models import *
 
 app = Flask(__name__)
 
-line_channel_access_token = 'lO2c3MJE9FHrMoxGlMUx/vKh5YrdhLT3RMQpRywglw+C7s0ugns92fQRQuEVURjtLo7UVVdBLxVy99xQk4W0GTwSAFXaqwjYXPPcY0fol6E9Wj6iplK0Mk6d9SsS4PWba58DMgAxrFNMBkMkAl27uAdB04t89/1O/w1cDnyilFU='
+line_channel_access_token = os.getenv("line_channel_access_token")
+line_channel_secret = os.getenv("line_channel_secret")
+mysql_host = os.getenv("mysql_host")
+mysql_port = os.getenv("mysql_port")
+mysql_db = os.getenv("mysql_db")
+mysql_user = os.getenv("mysql_user")
+mysql_pwd = os.getenv("mysql_pwd")
 
-# 必須放上自己的Channel Access Token
 line_bot_api = LineBotApi(line_channel_access_token)
-
-# 必須放上自己的Channel Secret
-handler = WebhookHandler('10f8e3963fb81c92797b7f2cebc22312')
+handler = WebhookHandler(line_channel_secret)
 
 #line_bot_api.push_message('U54cdd2802a60c0261bf72b4fa3fc96e6', TextSendMessage(text='你可以開始了'))
 
@@ -49,68 +52,64 @@ def callback():
 
 
 # 訊息傳遞區塊
-##### 基本上程式編輯都在這個function #####
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    global CURSOR
-    global connection
-
+    
     user_text = event.message.text  # 使用者傳的話
     user_text = user_text.split("@")
 
     user_id = event.source.user_id  # 使用者line user id
 
-    if user_text[0] == '患者名稱' or user_text[0] == '新增患者' or user_text[0] == '姓名':
-        if user_text[0] == '患者名稱':
-            message = TextSendMessage(
-                text='請選擇患者(或是直接輸入名字也可以)',
-                quick_reply=QuickReply(
-                    items=[
-                        QuickReplyButton(
-                            action=MessageAction(label="01. 大笨蛋", text="大笨蛋")
-                        ),
-                        QuickReplyButton(
-                            action=MessageAction(label="02. 小笨蛋", text="小笨蛋")
-                        ),
-                        QuickReplyButton(
-                            action=MessageAction(label="03. 中笨蛋", text="中笨蛋")
-                        )
-                    ]
-                )
+    if user_text[0] == '患者名稱':
+        message = TextSendMessage(
+            text='請選擇患者(或是直接輸入名字也可以)',
+            quick_reply=QuickReply(
+                items=[
+                    QuickReplyButton(
+                        action=MessageAction(label="01. 大笨蛋", text="大笨蛋")
+                    ),
+                    QuickReplyButton(
+                        action=MessageAction(label="02. 小笨蛋", text="小笨蛋")
+                    ),
+                    QuickReplyButton(
+                        action=MessageAction(label="03. 中笨蛋", text="中笨蛋")
+                    )
+                ]
             )
-            line_bot_api.reply_message(event.reply_token, message)
+        )
+        line_bot_api.reply_message(event.reply_token, message)
 
-        elif user_text[0] == '新增患者':
-            message = TextSendMessage(text='請輸入患者資訊(例如 楊千嬅 女 89/05/19)')
-            line_bot_api.reply_message(event.reply_token, message)
+    elif user_text[0] == '新增患者':
+        message = TextSendMessage(text='請輸入患者資訊(例如 楊千嬅 女 89/05/19)')
+        line_bot_api.reply_message(event.reply_token, message)
 
-        elif user_text[0] == '姓名':
-            user_name=user_text[1] #把個管師存進資料庫
+    elif user_text[0] == '姓名':
+        user_name=user_text[1] #把個管師存進資料庫
 
-            try:
-                connection = mysql.connector.connect(
-                    host="3.86.83.200",
-                    port=3306,
-                    database="cgust-line-project",
-                    user="cgust",
-                    password="12345678",
-                )
+        try:
+            connection = mysql.connector.connect(
+                host=mysql_host,
+                port=mysql_port,
+                database=mysql_db,
+                user=mysql_user,
+                password=mysql_pwd,
+            )
 
-                if connection.is_connected():
-                    cursor = connection.cursor()
+            if connection.is_connected():
+                cursor = connection.cursor()
 
-                    table_name = "個案管理師_基本資料"
-                    col_name = ["個管師_姓名", "個管師_line-user-id", "記錄時間"]
-                    val_list = [user_name, user_id, get_current_time()]
+                table_name = "個案管理師_基本資料"
+                col_name = ["個管師_姓名", "個管師_line-user-id", "記錄時間"]
+                val_list = [user_name, user_id, get_current_time()]
 
-                    db_insert(cursor, table_name, col_name, val_list)
-                    message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。")
+                db_insert(cursor, table_name, col_name, val_list)
+                message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。")
 
-            #except Error as e:
-            except:
-                message = TextSendMessage(text="資料上傳失敗。")
+        #except Error as e:
+        except:
+            message = TextSendMessage(text="資料上傳失敗。\n"+line_channel_access_token)
 
-            line_bot_api.reply_message(event.reply_token, message)
+        line_bot_api.reply_message(event.reply_token, message)
 
 
 def write_json(line_user_id, info_type, data_dict):
