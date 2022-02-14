@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+import subprocess #執行php
 
 import requests  # rich menu
 
@@ -29,8 +30,6 @@ mysql_pwd = os.getenv("mysql_pwd")
 
 line_bot_api = LineBotApi(line_channel_access_token)
 handler = WebhookHandler(line_channel_secret)
-
-#line_bot_api.push_message('U54cdd2802a60c0261bf72b4fa3fc96e6', TextSendMessage(text='你可以開始了'))
 
 # 監聽所有來自 /callback 的 Post Request (Heroku跟LINE Bot做串接)
 @app.route("/callback", methods=['POST'])
@@ -86,28 +85,15 @@ def handle_message(event):
     elif user_text[0] == '姓名':
         user_name=user_text[1] #把個管師存進資料庫
 
-        try:
-            connection = mysql.connector.connect(
-                host=mysql_host,
-                port=mysql_port,
-                database=mysql_db,
-                user=mysql_user,
-                password=mysql_pwd,
-            )
+        try:    
+            proc = subprocess.Popen("php ./database/read.php", shell=True, stdout=subprocess.PIPE)
+            script_response = proc.stdout.read()
 
-            if connection.is_connected():
-                cursor = connection.cursor()
-
-                table_name = "個案管理師_基本資料"
-                col_name = ["個管師_姓名", "個管師_line-user-id", "記錄時間"]
-                val_list = [user_name, user_id, get_current_time()]
-
-                db_insert(cursor, table_name, col_name, val_list)
-                message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。")
+            message = TextSendMessage(text="哈囉！"+user_name+"。"+"\n"+"你可以開始使用其他功能了。"+"\n"+script_response)
 
         #except Error as e:
         except:
-            message = TextSendMessage(text="資料上傳失敗。\n"+line_channel_access_token)
+            message = TextSendMessage(text="資料上傳失敗。")
 
         line_bot_api.reply_message(event.reply_token, message)
 
@@ -128,36 +114,6 @@ def write_json(line_user_id, info_type, data_dict):
 def if_mkdir(dir_path):  # 如果檔案不存在,就建立一個
     if os.path.isdir(dir_path) != 1:
         os.makedirs(dir_path)
-
-
-# 存入資料庫
-def db_insert(cursor, table_name, col_list, val_list):
-    sql = "INSERT INTO `"+table_name+"` "
-    sql += "("
-    for col_index in range(0, len(col_list)):
-        if col_index != len(col_list)-1:
-            sql += "`"+col_list[col_index]+"`, "
-        else:
-            sql += "`"+col_list[col_index]+"`"
-    sql += ") "
-    sql += "VALUES "
-    sql += "("
-    for val_index in range(0, len(val_list)):
-        if val_list[val_index] == "now()":
-            sql += val_list[val_index]
-        else:
-            if type(val_list[val_index]) == str:
-                sql += "'"+val_list[val_index]+"'"
-            elif type(val_list[val_index]) == int:
-                sql += str(val_list[val_index])
-
-        if val_index != len(val_list)-1:
-            sql += ", "
-
-    sql += ") "
-
-    cursor.execute(sql)
-    connection.commit()
 
 
 def get_current_time():
