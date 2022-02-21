@@ -1,1 +1,1 @@
-web: python app.py
+web: php app.php
