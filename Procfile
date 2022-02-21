@@ -1,1 +1,1 @@
-web: php app.php
+web: php index.php
