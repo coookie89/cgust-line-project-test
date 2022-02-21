@@ -1,26 +1,3 @@
-<?php 
- 
-//設定Token 
-$ChannelAccessToken = getenv('line_channel_access_token');
-$ChannelSecret = getenv('line_channel_secret');
-
-//讀取資訊 
-$HttpRequestBody = file_get_contents('php://input'); 
-$HeaderSignature = $_SERVER['HTTP_X_LINE_SIGNATURE']; 
- 
-//驗證來源是否是LINE官方伺服器 
-$Hash = hash_hmac('sha256', $HttpRequestBody, $ChannelSecret, true); 
-$HashSignature = base64_encode($Hash); 
-if($HashSignature != $HeaderSignature) 
-{ 
-    die('hash error!'); 
-} 
- 
-//輸出 
-file_put_contents('log.txt', $HttpRequestBody); 
- 
-?>
-
 <?php
 
 /**
